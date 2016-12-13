@@ -1,5 +1,9 @@
-[docker_servers]
-192.168.77.162
+[common]
+172.16.156.130
 
-[docker_compose_servers]
-192.168.77.162
+[docker]
+172.16.156.130
+
+
+
+

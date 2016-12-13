@@ -1,0 +1,38 @@
+*filter
+:INPUT DROP [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:LOGGING - [0:0]
+:TCPIN - [0:0]
+:TCPOUT - [0:0]
+:UDPIN - [0:0]
+:UDPOUT - [0:0]
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -m conntrack --ctstate INVALID -j DROP
+-A INPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
+-A INPUT -p udp -m conntrack --ctstate NEW -j UDPIN
+-A INPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j TCPIN
+-A INPUT -j LOGGING
+-A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -m conntrack --ctstate INVALID -j DROP
+-A OUTPUT -p icmp -m icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
+-A OUTPUT -p udp -m conntrack --ctstate NEW -j UDPOUT
+-A OUTPUT -p tcp -m tcp --tcp-flags FIN,SYN,RST,ACK SYN -m conntrack --ctstate NEW -j TCPOUT
+-A OUTPUT -j LOGGING
+-A LOGGING -m limit --limit 5/sec -j LOG --log-prefix "IPTables-Dropped: "
+-A LOGGING -p udp -j REJECT --reject-with icmp-port-unreachable
+-A LOGGING -p tcp -j REJECT --reject-with tcp-reset
+-A LOGGING -j REJECT --reject-with icmp-proto-unreachable
+-A TCPIN -p tcp -m tcp --dport 22 -j ACCEPT
+-A TCPIN -j LOGGING
+-A TCPOUT -p tcp -m tcp --dport 80 -j ACCEPT
+-A TCPOUT -p tcp -m tcp --dport 443 -j ACCEPT
+-A TCPOUT -j LOGGING
+-A UDPIN -j LOGGING
+-A UDPOUT -p udp -m udp --dport 53 -j ACCEPT
+-A UDPOUT -p udp -m udp --dport 53 -j ACCEPT
+-A UDPOUT -p udp -m udp --dport 123 -j ACCEPT
+-A UDPOUT -j LOGGING
+COMMIT

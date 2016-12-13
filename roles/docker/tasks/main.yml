@@ -1,16 +1,40 @@
-- name: Install python-pycurl & python-apt
-  apt: pkg={{ item }} update_cache=yes state=present
-  with_items:
-    - python-pycurl
-    - python-apt
+---
+# Ansible script for installing Docker on Centos and Ubuntu
+# Author: Oliver Gillum-Webb
 
-- name: install docker apt-key
+- name: Add Docker apt-key
   apt_key: keyserver=p80.pool.sks-keyservers.net id=58118E89F3A912897C070ADBF76221572C52609D
-
-- name: enable docker repo
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  
+- name: Add Docker Repo
+  template: src=docker.repo.j2 dest=/etc/yum.repos.d/docker.repo
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  
+- name: Enable Docker repo
   apt_repository: repo='deb https://apt.dockerproject.org/repo ubuntu-trusty main' state=present
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- name: install docker
+- name: Install Debian or Ubuntu Docker Engine
   apt: pkg={{ item }} state=present update_cache=yes
   with_items:
     - docker-engine
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Install CentOS or RHEL Docker Engine
+  yum: pkg={{item}} state=latest
+  with_items:
+    - docker-engine
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  
+- name: Start Docker
+  service: name=docker.service state=started
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Start Docker
+  service: name=docker state=started
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'  
+  
+- name: Install Docker-Compose
+  pip:
+    name: docker-compose
+

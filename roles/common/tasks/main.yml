@@ -1,0 +1,19 @@
+---
+# Ansible playbook for installing applications on Centos and Ubuntu
+# Author: Oliver Gillum-Webb
+
+- name: Install CentOS/RHEL software
+  yum: pkg={{item}} state=latest
+  with_items:
+    - libselinux-python
+    - python-pip
+    - net-tools
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+- name: Install Debian/Ubuntu Software
+  apt: pkg={{ item }} update_cache=yes state=present
+  with_items:
+    - python-pycurl
+    - python-apt
+    - python-pip
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
